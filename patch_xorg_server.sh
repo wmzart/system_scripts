@@ -21,6 +21,8 @@
 # license: MIT
 #
 
+command -v debootstrap 2>&1 >/dev/null || { echo 'Unable to find debootstap. Please install with "sudo apt install debootstrap". Aborting.'; exit 1; }
+
 [ -d /tmp/xorg_chroot ] && sudo rm -Rf /tmp/xorg_chroot
 sudo mkdir -p /tmp/xorg_chroot
 
