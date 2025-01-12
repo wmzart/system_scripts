@@ -1,7 +1,7 @@
 #!/bin/sh
-# xorg-server has a bug in which the highest area at the very top is unselectable
-# This is caused by rounding errors in /mi/mipointer.c and can be fixed by using
-# floor unstead of trunc
+# xorg-server has a bug in which the highest area at the very top of the desktop is
+# unselectable. This is caused by rounding errors in mi/mipointer.c and can be fixed
+# by using floor unstead of trunc
 #
 # This script fixes this. It creates a new deb package from the existing one and
 # installs this subsequently. It does this in a chroot environment, preventing
