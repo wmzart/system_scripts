@@ -1,7 +1,7 @@
 #!/bin/sh
-# xorg-server has a bug in which the highest area at the very top is unselectable
-# This is caused by rounding errors in /mi/mipointer.c and can be fixed by using
-# floor unstead of trunc
+# The mate-notification-daemon in ubuntu mate is crashing frequently.
+# This is caused by the function do_exit() inin daemon.c, which triggers
+# exit(0); instead of gtk_main_quit() in order to stop the main process.
 #
 # This script fixes this. It creates a new deb package from the existing one and
 # installs this subsequently. It does this in a chroot environment, preventing
@@ -10,11 +10,8 @@
 # target system: ubuntu 24.04 (noble)
 #
 # References:
-# https://bugs.launchpad.net/ubuntu/+source/xorg-server/+bug/1795135
-# https://ubuntu-mate.community/t/tip-to-fix-un-clickable-menu-and-show-desktop-buttons/19928
-# https://bugs.launchpad.net/plank/+bug/1505440
-# https://bugs.launchpad.net/plank/+bug/1828002
-# https://gitlab.freedesktop.org/xorg/xserver/-/merge_requests/1451
+# https://bugs.launchpad.net/ubuntu/+source/mate-notification-daemon/+bug/2089668
+# https://github.com/mate-desktop/mate-notification-daemon/pull/229
 #
 # created by Marc Nijdam, Jan. 2025
 #
