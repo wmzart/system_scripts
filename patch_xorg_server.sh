@@ -23,19 +23,19 @@
 
 command -v debootstrap 2>&1 >/dev/null || { echo 'Unable to find debootstap. Please install with "sudo apt install debootstrap". Aborting.'; exit 1; }
 
-[ -d /tmp/xorg_chroot ] && sudo rm -Rf /tmp/xorg_chroot
-sudo mkdir -p /tmp/xorg_chroot
+[ -d /tmp/chroot_xserver ] && sudo rm -Rf /tmp/chroot_xserver
+sudo mkdir -p /tmp/chroot_xserver
 
 # create chroot
 sudo debootstrap \
   --variant=minbase \
   --arch=amd64 noble \
-  /tmp/xorg_chroot \
+  /tmp/chroot_xserver \
   http://archive.ubuntu.com/ubuntu
 
 # dive into chroot now
-echo "$(hostname)" | sudo tee /tmp/xorg_chroot/etc/hostname
-cat << 'EOF' | sudo chroot /tmp/xorg_chroot
+echo "$(hostname)" | sudo tee /tmp/chroot_xserver/etc/hostname
+cat << 'EOF' | sudo chroot /tmp/chroot_xserver
 printf "deb http://archive.ubuntu.com/ubuntu noble main restricted universe multiverse\ndeb http://security.ubuntu.com/ubuntu noble-security main restricted universe multiverse" > /etc/apt/sources.list
 # enable sources in apt
 histchars=
@@ -77,11 +77,11 @@ fi
 EOF
 
 # get back from chroot
-cd /tmp/xorg_chroot/tmp/
+cd /tmp/chroot_xserver/tmp/
 TDF=$(find * -maxdepth 1 -type f -name "xserver-xorg-core_*.deb" | head -n 1)
 if [ -n "${TDF}" ]; then
-  sudo apt-get -y --allow-downgrades install /tmp/xorg_chroot/tmp/${TDF}
+  sudo apt-get -y --allow-downgrades install /tmp/chroot_xserver/tmp/${TDF}
 else
   echo "Unable to find xorg-server-core.XXYYZZ.deb file"
 fi
-sudo rm -Rf /tmp/xorg_chroot
+sudo rm -Rf /tmp/chroot_xserver
