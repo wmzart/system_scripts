@@ -6,7 +6,7 @@ L_TGT="freecad"
 L_NM="application-x-extension-fcstd"
 L_MIME="application/x-extension-fcstd"
 L_DESCR="FreeCAD document files"
-L_PATT="*.fcstd"
+L_EXT="fcstd"
 
 
 # check dependency imagemagick
@@ -58,7 +58,7 @@ if [ ! -h "/usr/local/bin/${L_TGT}" ]; then
   ## Edit the /etc/mime.types file. Add (for example) the following line (using TABs):
   # application/x-extension-fcstd			fcstd
   if ! grep -q -e "^${L_MIME}" /etc/mime.types; then
-    echo -e "${L_MIME}\t\t\tfcstd" | sudo tee -a /etc/mime.types
+    echo -e "${L_MIME}\t\t\t${L_EXT}" | sudo tee -a /etc/mime.types
   fi
 
   ## create a file type description for mimetypes
@@ -68,7 +68,7 @@ if [ ! -h "/usr/local/bin/${L_TGT}" ]; then
   q+='	<mime-type type="XMIME">\n'
   q+='		<sub-class-of type="application/zip"/>\n'
   q+='		<comment>XDESCR</comment>\n'
-  q+='		<glob pattern="XPATT"/>\n'
+  q+='		<glob pattern="*.XEXT"/>\n'
   q+='		<icon name="XNAME"/>\n'
   q+='	</mime-type>\n'
   q+='</mime-info>'
@@ -78,7 +78,7 @@ if [ ! -h "/usr/local/bin/${L_TGT}" ]; then
   # fill in relevant parts
   sed -i "s|XMIME|${L_MIME}|" "${L_TGT}.xml"
   sed -i "s|XDESCR|${L_DESCR}|" "${L_TGT}.xml"
-  sed -i "s|XPATT|${L_PATT}|" "${L_TGT}.xml"
+  sed -i "s|XEXT|${L_EXT}|" "${L_TGT}.xml"
   sed -i "s|XNAME|${L_NM}|" "${L_TGT}.xml"
   # install xml to /usr/share/mime/packages/
   sudo xdg-mime install --novendor "${L_TGT}.xml"
