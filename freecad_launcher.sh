@@ -32,7 +32,7 @@ if [ ! -h "/usr/local/bin/${L_TGT}" ]; then
   eval LTM=$(gsettings get org.gnome.desktop.interface gtk-theme)
   for size in 16 24 32 48 64 128 256; do
     # imagemagick works rasterbased, so make first a high resolution conversion, then scale down
-    convert -background none -density 2000 -resize $size "${L_TGT}.svg" "${L_TGT}_${size}x${size}.png" "${L_NM}"
+    convert -background none -density 2000 -resize $size "${L_TGT}.svg" "${L_TGT}_${size}x${size}.png"
     # place png in /usr/share/icons/hicolor/${size}x${size}/mimetypes
     sudo xdg-icon-resource install --context mimetypes --size $size "${L_TGT}_${size}x${size}.png" "${L_NM}"
     # place png in /usr/share/icons/hicolor/${size}x${size}/apps
