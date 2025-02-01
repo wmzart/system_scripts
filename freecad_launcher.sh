@@ -8,7 +8,7 @@
 # created by Marc Nijdam, Jan. 2025
 
 ## configurables
-L_APP="~/freecad/FreeCAD_1.0.0-conda-Linux-x86_64-py311.AppImage"
+L_APP="$HOME/freecad/FreeCAD_1.0.0-conda-Linux-x86_64-py311.AppImage"
 L_TGT="freecad"
 L_NM="application-x-extension-fcstd"
 L_MIME="application/x-extension-fcstd"
@@ -73,8 +73,8 @@ if ! command -v convert 2>&1 >/dev/null; then
 fi
 
 # check if svg and desktop file are present in ~/Downloads
-[ -f "~/Downloads/${L_TGT}.svg" ] || { echo "please provide an svg file in ~/Downloads  Aborting..."; exit; }
-[ -f "~/Downloads/${L_TGT}.svg" ] || { echo "please provide a desktop file in ~/Downloads  Aborting..."; exit; }
+[ -f "$HOME/Downloads/${L_TGT}.svg" ] || { echo "please provide an svg file in ~/Downloads  Aborting..."; exit; }
+[ -f "$HOME/Downloads/${L_TGT}.svg" ] || { echo "please provide a desktop file in ~/Downloads  Aborting..."; exit; }
 
 
 # check if symlink already exists...
