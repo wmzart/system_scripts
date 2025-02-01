@@ -9,7 +9,6 @@
 
 ## configurables
 L_APP="~/freecad/FreeCAD_1.0.0-conda-Linux-x86_64-py311.AppImage"
-L_SRC="https://www.auditeon.com/xyz/install"
 L_TGT="freecad"
 L_NM="application-x-extension-fcstd"
 L_MIME="application/x-extension-fcstd"
@@ -73,6 +72,10 @@ if ! command -v convert 2>&1 >/dev/null; then
   exit
 fi
 
+# check if svg and desktop file are present in ~/Downloads
+[ -f "~/Downloads/${L_TGT}.svg" ] || { echo "please provide an svg file in ~/Downloads  Aborting..."; exit; }
+[ -f "~/Downloads/${L_TGT}.svg" ] || { echo "please provide a desktop file in ~/Downloads  Aborting..."; exit; }
+
 
 # check if symlink already exists...
 if [ ! -h "/usr/local/bin/${L_TGT}" ]; then
@@ -80,11 +83,7 @@ if [ ! -h "/usr/local/bin/${L_TGT}" ]; then
   cd /usr/local/bin
   sudo ln -s "${L_APP}" "${L_TGT}"
 
-  # download svg and desktop file
-  wget -O "$HOME/Downloads/${L_TGT}_launcher.tar.bz2" "${L_SRC%/}/${L_TGT}_launcher.tar.bz2"
   cd ~/Downloads/
-  tar xjf "${L_TGT}_launcher.tar.bz2"
-
   # Create and install different sizes for the svg icon
   # https://portland.freedesktop.org/doc/xdg-icon-resource.html
   # get theme and strip single quote around it using eval
@@ -99,6 +98,8 @@ if [ ! -h "/usr/local/bin/${L_TGT}" ]; then
     sudo xdg-icon-resource install --theme "${L_TM}" --context mimetypes --size $size "${L_TGT}_${size}x${size}.png" "${L_NM}"
     # place png in /usr/share/icons/$THEME/${size}x${size}/apps
     sudo xdg-icon-resource install --theme "${L_TM}" --context apps --size $size "${L_TGT}_${size}x${size}.png" "${L_NM}"
+    # and remove again
+    rm "${L_TGT}_${size}x${size}.png"
   done
   # copy scalable manually into apps and mimetypes
   sudo cp "${L_TGT}.svg" "/usr/share/icons/hicolor/scalable/apps/${L_NM}.svg"
@@ -144,8 +145,5 @@ if [ ! -h "/usr/local/bin/${L_TGT}" ]; then
   ## associate filetype and update the mime database
   xdg-mime default "${L_TGT}.desktop" "${L_MIME}"
 
-  rm "${L_TGT}.desktop" "${L_TGT}.svg" "${L_TGT}.xml" "${L_TGT}_launcher.tar.bz2"
-  for size in 16 24 32 48 64 128 256; do
-    rm "${L_TGT}_${size}x${size}.png"
-  done
+  rm "${L_TGT}.desktop" "${L_TGT}.svg" "${L_TGT}.xml"
 fi
