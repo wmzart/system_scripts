@@ -2,13 +2,19 @@
 
 # Install xdg desktop item and associate file type with icon.
 #
-# Invoke this script without arguments, to installed the item, or
-# invoke with the argument uninstall in order to remove the item.
+# Usage:
+# To install desktop file, icon for .fcstd files and set association,
+# invoke this script as it is, without arguments.
+# You may provide your own freecad.desktop and freecad.svg file. If
+# these are not provided in ~/Downloads/, it will download instead.
+#
+# To uninstall, invoke with the argument 'uninstall'.
 #
 # created by Marc Nijdam, Jan. 2025
 
 ## configurables
 L_APP="$HOME/freecad/FreeCAD_1.0.0-conda-Linux-x86_64-py311.AppImage"
+L_URL="https://www.auditeon.com/xyz/install/"
 L_TGT="freecad"
 L_NM="application-x-extension-fcstd"
 L_MIME="application/x-extension-fcstd"
@@ -72,11 +78,6 @@ if ! command -v convert 2>&1 >/dev/null; then
   exit
 fi
 
-# check if svg and desktop file are present in ~/Downloads
-[ -f "$HOME/Downloads/${L_TGT}.svg" ] || { echo "please provide an svg file in ~/Downloads  Aborting..."; exit; }
-[ -f "$HOME/Downloads/${L_TGT}.svg" ] || { echo "please provide a desktop file in ~/Downloads  Aborting..."; exit; }
-
-
 # check if symlink already exists...
 if [ ! -h "/usr/local/bin/${L_TGT}" ]; then
   # create a symbolic link in /usr/local/bin/ pointing to our target application
@@ -84,6 +85,23 @@ if [ ! -h "/usr/local/bin/${L_TGT}" ]; then
   sudo ln -s "${L_APP}" "${L_TGT}"
 
   cd ~/Downloads/
+  # check if svg and desktop file both are present in ~/Downloads 
+  if [ ! -f "${L_TGT}.desktop" -o ! -f "${L_TGT}.svg" ] ; then
+    [ -f "${L_TGT}.desktop.tar.bz2" ] && rm "${L_TGT}.desktop.tar.bz2"
+    printf "Downloading ${L_TGT}.desktop and ${L_TGT}.svg file ...\n"
+    wget -O "${L_TGT}.desktop.tar.bz2" "${L_URL%/}/${L_TGT}.desktop.tar.bz2"
+    if [ "$?" = 0 ]; then
+      tar xjf "${L_TGT}.desktop.tar.bz2"
+      rm "${L_TGT}.desktop.tar.bz2"
+    else
+      printf "Unable to download ${L_TGT} desktop file."
+    fi
+  else
+    printf "Using existing ${L_TGT}.desktop and ${L_TGT}.svg file ...\n"
+  fi
+
+  printf "Installing desktop file, file icon and association for ${L_TGT} ...\n"
+
   # Create and install different sizes for the svg icon
   # https://portland.freedesktop.org/doc/xdg-icon-resource.html
   # get theme and strip single quote around it using eval
@@ -146,4 +164,5 @@ if [ ! -h "/usr/local/bin/${L_TGT}" ]; then
   xdg-mime default "${L_TGT}.desktop" "${L_MIME}"
 
   rm "${L_TGT}.desktop" "${L_TGT}.svg" "${L_TGT}.xml"
+  printf "Done.\n"
 fi
