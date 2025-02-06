@@ -56,56 +56,67 @@ fi
 tmpdir=$(mktemp -d)
 tar xjf "$HOME/Downloads/${libvconf}" -C $tmpdir
 cd $tmpdir
+# required
 virt_domain=$(grep -l "^<domain" *)
+[ -z "${virt_domain}" ] && { echo "libvirt domain not provided. Aborting."; exit 1; }
 virt_stor=$(grep -l "^<pool" *)
+[ -z "${virt_stor}" ] && { echo "libvirt storage file not provided. Aborting."; exit 1; }
+# optional
 virt_lvrtd="libvirtd.conf"
 virt_slic="SLIC"
+
+
 domain_name="$(sed -n 's|[^<]*<name>\([^<]*\)</name>[^<]*|\1\n|gp' "${virt_domain}")"
 echo "The following files were found:"
 echo "  domain: $virt_domain"
 echo "  storage: $virt_stor"
-echo "  libvirtd configuration: libvirtd.conf"
-echo "  SLIC file: SLIC"
+[ -f "${tmpdir%/}/${virt_lvrtd}" ] && echo "  libvirtd settings: libvirtd.conf"
+[ -f "${tmpdir%/}/${virt_slic}" ] && echo "  SLIC file: SLIC"
 
 
 ## check if directories are present
-printf "verifying if directories are present ... \n"
+echo "verifying if directories are present ..."
 [ -d "/etc/libvirt/" ] || { echo "libvirt settings directory missing. Aborting..."; exit 1; }
 [ -d "/etc/libvirt/qemu/" ] || { echo "libvirt qemu settings directory missing. Aborting..."; exit 1; }
 sudo [ -d "/var/lib/libvirt/qemu/nvram/" ] || { echo "libvirt qemu nvram directory missing. Aborting..."; exit 1; }
 sudo mkdir -p /etc/libvirt/storage/
-printf "Done\n"
+echo "Done"
 
 
 ## move files to corresponding places
 # except for SLIC, all are stored as root:root SLIC has libvirt-qemu:kvm
-printf "copying configuration files to corresponding locations ... \n"
-if [ -f "/etc/libvirt/${virt_lvrtd}" ]; then
-  echo "overwriting /etc/libvirt/${virt_lvrtd}"
+echo "copying configuration files to corresponding locations ..."
+# ... libvirtd.conf
+if [ -f "${tmpdir%/}/${virt_lvrtd}" ]; then
+  if [ -f "/etc/libvirt/${virt_lvrtd}" ]; then
+    echo "overwriting /etc/libvirt/${virt_lvrtd}"
+  fi
+  sudo mv "${tmpdir%/}/${virt_lvrtd}" /etc/libvirt/
+  sudo chown root:root "/etc/libvirt/${virt_lvrtd}"
 fi
-sudo mv "${tmpdir%/}/${virt_lvrtd}" /etc/libvirt/
-sudo chown root:root "/etc/libvirt/${virt_lvrtd}"
-#
+# ... domain.xml
 if [ ! -f "/etc/libvirt/qemu/${virt_domain}" ]; then
   sudo cp "${tmpdir%/}/${virt_domain}" /etc/libvirt/qemu/
   sudo chown root:root "/etc/libvirt/qemu/${virt_domain}"
 else
   echo "skipping /etc/libvirt/qemu/${virt_domain}"
 fi
-#
+# ... pool.xml
 if [ ! -f "/etc/libvirt/storage/${virt_stor}" ]; then
   sudo mv "${tmpdir%/}/${virt_stor}" /etc/libvirt/storage/
   sudo chown root:root "/etc/libvirt/storage/${virt_stor}"
 else
   echo "skipping /etc/libvirt/storage/${virt_stor}"
 fi
-#
-if ! sudo test -f "/var/lib/libvirt/qemu/nvram/${virt_slic}"; then
-  echo "overwriting /var/lib/libvirt/qemu/nvram/${virt_slic}"
+# ... SLIC
+if [ -f "${tmpdir%/}/${virt_slic}" ]; then
+  if ! sudo test -f "/var/lib/libvirt/qemu/nvram/${virt_slic}"; then
+    echo "overwriting /var/lib/libvirt/qemu/nvram/${virt_slic}"
+  fi
+  sudo mv "${tmpdir%/}/${virt_slic}" /var/lib/libvirt/qemu/nvram/
+  sudo chown libvirt-qemu:kvm "/var/lib/libvirt/qemu/nvram/${virt_slic}"
+  echo "Done"
 fi
-sudo mv ${tmpdir%/}/${virt_slic} /var/lib/libvirt/qemu/nvram/
-sudo chown libvirt-qemu:kvm "/var/lib/libvirt/qemu/nvram/${virt_slic}"
-printf "Done\n"
 
 
 ## allow virt-manager as non-root user
@@ -120,7 +131,7 @@ if ! sudo getent group | grep -q libvirt; then
   # newgrp libvirt
   printf "Done\n"
 else
-  printf "group libvirt was already added... \n"
+  echo "group libvirt was already added..."
 fi
 
 
@@ -133,7 +144,7 @@ sudo systemctl restart libvirtd.service
 if ! virsh list --all | grep -q "${domain_name}"; then
   virsh define --file "${tmpdir%/}/${virt_domain}"
 else
-  printf "domain was already added to libvirt... \n"
+  echo "domain was already added to libvirt..."
 fi
 rm -Rf "${tmpdir}"
 
@@ -165,7 +176,7 @@ sudo apt-get -y install samba-common samba
 if ! sudo ufw app list | grep -q Samba; then
   sudo ufw allow 'Samba'
 else
-  printf "firewall rule for Samba was already added.\n" 
+  echo "firewall rule for Samba was already added."
 fi
 
 
@@ -186,7 +197,7 @@ if [ ! -d "${SMB_SHARE}" ]; then
   sudo chown $(whoami):sambashare $(basename ${SMB_SHARE})
   sudo chmod 2770 $(basename ${SMB_SHARE})
 else
-  printf "host directory for sharing files with guest was already added\n"
+  echo "host directory for sharing files with guest was already added"
 fi
 
 
@@ -195,7 +206,7 @@ if ! sudo pdbedit -L -v -u "${SMB_USER}" 2> /dev/null | grep -q '^Account Flags:
   (echo "${SMB_PWD}"; sleep 1; echo "${SMB_PWD}" ) | sudo smbpasswd -s -a "${SMB_USER}" >/dev/null
   sudo smbpasswd -e "${SMB_USER}" >/dev/null
 else
-  printf "user ${SMB_USER} was already added and enabled\n"
+  echo "user ${SMB_USER} was already added and enabled"
 fi
 
 
@@ -216,7 +227,7 @@ if ! grep -qe "^\[${SMB_USER}\]" "${smbconf}"; then
   printf "\n${q}\n" | sudo tee -a "${smbconf}" >/dev/null
   unset histchars
 else
-  printf "samba share ${SMB_SHARE} was already added\n"
+  echo "samba share ${SMB_SHARE} was already added"
 fi
 
 
@@ -245,7 +256,7 @@ if [ ! -f /etc/libvirt/hooks/qemu ]; then
   unset histchars
   sudo chmod +x /etc/libvirt/hooks/qemu
 else
-  printf "qemu hook for samba was already added\n"
+  echo "qemu hook for samba was already added"
 fi
 
 
