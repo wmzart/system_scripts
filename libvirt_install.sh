@@ -28,7 +28,7 @@ fi
 QEMU_USER="$(whoami)"
 # samba user and password
 SMB_USER="$(whoami)"
-SMB_PWD="sambawins"
+SMB_PWD="$(tr -dc A-Z0-9_ < /dev/urandom | head -c 10 | xargs)"
 # local samba share location. Note that the last part is the root
 # of the share as seen in windows. Windows will not show this name.
 # This means that the path in windows is something like \\IP\$SMB_USER
@@ -144,7 +144,8 @@ sudo sed -i '/^#group =/s/.*/group = "libvirt"/' /etc/libvirt/qemu.conf
 sudo systemctl restart libvirtd
 
 
-## Test activation status for windows start via command line using:
+## Test activation status for windows
+# start via command line using:
 #   virt-manager
 # Or start via plank, typing: virtual machine manager
 # after starting windows, you can verify the activation status with:
@@ -198,28 +199,16 @@ else
 fi
 
 
-## allow symlinks to be used as share
-grep -qe '^allow insecure wide links' "${smbconf}" || sudo sed -i '/^\[global\]/a allow insecure wide links = yes' "${smbconf}"
-if ! grep -qe '^\[share\]' "${smbconf}"; then
-  histchars=
-  q='[share]\n'
-  q=$q'follow symlinks = yes\n'
-  q=$q'wide links = yes'
-  # replace \n with newline and write to xml
-  printf "\n${q}\n" | sed 's/\\n/\'$'\n''/g' | sudo tee -a "${smbconf}" >/dev/null
-  unset histchars
-else
-  printf "share settings for samba were already added\n"
-fi
-
-
 ## add share to samba
+# allow symlinks to be used as share
 if ! grep -qe "^\[${SMB_USER}\]" "${smbconf}"; then
   histchars=
   q="[${SMB_USER}]\n"
   q="$q    path = ${SMB_SHARE}\n"
   q="$q    browseable = no\n"
   q="$q    read only = no\n"
+  q="$q    follow symlinks = yes\n"
+  q="$q    wide links = yes\n"
   q="$q    force create mode = 0660\n"
   q="$q    force directory mode = 2770\n"
   q="$q    valid users = ${SMB_USER}"
@@ -261,26 +250,26 @@ fi
 
 
 ## done! show summary
-echo "===================================="
-echo "virtual machine manager is installed"
-echo
-echo "samba file sharing is installed"
-echo "  network share: $SMB_SHARE"
-echo "  password: $SMB_PWD"
-echo
-echo "PLEASE RESTART YOUR SYSTEM FIRST BEFORE "
-echo "USING KVM/QEMU."
-echo
-echo "Then start windows and your network share"
-echo "should be drive Z:"
-echo "If not, configure in windows:"
-echo "1. right click on Network → Map network drive"
-echo "2. Enter following data:"
-echo "      Drive: Z"
-echo "      Folder: \\192.168.122.1\\${SMB_USER}"
-echo " (Note that the absolute path is still $home/samba)"
-echo "      enable Reconnect at sign-in"
-echo "      enable Connect using different credentials"
-echo "3. In the next window, enter the username and password"
-echo "   and on the option remember."
-echo "You are done. Now the network should appear."
+histchars=
+q="====================================\n"
+q="${q}virtual machine manager is installed\n\n"
+q="${q}samba file sharing is installed\n"
+q="${q}  network share: $SMB_SHARE\n"
+q="${q}  password: $SMB_PWD\n\n"
+q="${q}PLEASE RESTART YOUR SYSTEM FIRST BEFORE\n"
+q="${q}USING KVM/QEMU.\n\n"
+q="${q}Then start windows and your network share\n"
+q="${q}should be drive Z: (or any other drive name)\n"
+q="${q}If not, configure in windows:\n"
+q="${q}1. right click on Network → Map network drive\n"
+q="${q}2. Enter following data:\n"
+q=${q}'      Drive: Z\n      Folder: \\\\192.168.122.1\\'
+q="${q}${SMB_USER}\n"
+q="${q} (Note that the absolute path is still ${SMB_SHARE})\n"
+q="${q}      enable Reconnect at sign-in\n"
+q="${q}      enable Connect using different credentials\n"
+q="${q}3. In the next window, enter the username and password\n"
+q="${q}   and click on the option remember.\n"
+q="${q}You are done. Now the network should appear."
+printf "${q}\n" | sed 's|\\n|\'$'\n''|g' | tee $HOME/samba_summary.txt
+unset histchars
