@@ -19,11 +19,9 @@
 # license: MIT
 
 if [ $# != 1 ]; then
-  echo "please provide a url for downloading the configuration"
-else
-  libvconf="$(basename -- "$1")"
+  echo "please provide a url for downloading the configuration, Aborting."
+  exit 1
 fi
-
 
 QEMU_USER="$(whoami)"
 # samba user and password
@@ -37,8 +35,12 @@ SMB_PWD="$(tr -dc A-Z0-9_ < /dev/urandom | head -c 10 | xargs)"
 SMB_SHARE="/shares/samba"
 
 
-# samba configuration
+# script file name and samba configuration file
+libvconf="$(basename -- "$1")"
 smbconf="/etc/samba/smb.conf"
+
+
+
 # install libvirt and qemu dependencies 
 sudo apt-get update && sudo apt-get -y install qemu-kvm virt-manager \
                             libvirt-daemon-system libvirt-clients bridge-utils \
