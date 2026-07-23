@@ -43,6 +43,9 @@ gsettings set org.gnome.evolution.mail preview-unset-html-colors true
 gsettings set org.gnome.evolution.addressbook completion-show-address true
 printf ">>    configure evolution mail from backup...\n"
 evolution --force-shutdown > /dev/null 2>&1
+# change mail forward style to quoted
+gsettings set org.gnome.evolution.mail forward-style-name 'quoted'
+gsettings set org.gnome.evolution.mail forward-style 2
 
 # Retrieve MNTF for mountpoint and BSFN for basename, based on the file
 # "evolution-backup-", which should be present in the main directory of the USB
