@@ -7,7 +7,7 @@ Target distribution: ubuntu 24.04 (mate)
 Please see the header of the scripts to understand what it is for.
 
 It was initially created for the following main reasons:
-* Make sure that the touchpad uses preferred settings like twi finger natural scrolling right from the beginning after logging in the very first time. This was partly achieved using an autoinstall.yaml file and after that letting the post_install script take over settings which require a graphical user interface to be present (using gsettings).
+* Make sure that the touchpad uses preferred settings like two finger natural scrolling right from the beginning after logging in the very first time. This was partly achieved using an autoinstall.yaml file and after that letting the post_install script take over settings which require a graphical user interface to be present (using gsettings).
 * Replicate the (global menu) unity desktop as good as possible it was in Ubuntu 20.04 combining the OSX-like "eleven" user layout with the Ambiant-MATE-Dark theme.
 
 With this solved, the collection of scripts gradually became larger to configure all kind of settings and configurations which required more complicated sequence of steps to perform.
