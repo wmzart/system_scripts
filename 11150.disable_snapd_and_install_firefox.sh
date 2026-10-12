@@ -24,7 +24,6 @@ FF_ICON="Fx-Browser-icon-fullColor-128.png"
 # $1: target filename including full path
 create_firefox_desktop () {
   histchars=
-  histchars=
   q="[Desktop Entry]\n"
   q="${q}Version=1.0\n"
   q="${q}Type=Application\n"
